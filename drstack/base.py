@@ -13,10 +13,13 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+#
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 """
 Base classes to build shell commands
 """
+
 
 class Command(object):
     """
@@ -26,4 +29,3 @@ class Command(object):
     def __init__(self, cmd=None, top=None):
         self.cmd = cmd
         self.top = top
-

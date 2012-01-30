@@ -13,6 +13,8 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+#
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 """
 Command-line interface to the OpenStack Identity, Compute and Storage APIs
@@ -30,6 +32,7 @@ import httplib2
 
 from keystoneclient.v2_0 import client as keystone_client
 from novaclient.v1_1 import client as nova_client
+from novaclient import exceptions
 from novaclient import utils
 
 import drstack.create as create_cmd
@@ -37,37 +40,42 @@ import drstack.delete as delete_cmd
 import drstack.list as list_cmd
 import drstack.show as show_cmd
 
+
 # Handle broken modules (keystoneclient I'm looking at you!)
 logging.basicConfig()
 
-# ensure str ends with a '/'
+
 def can_haz_slash(str):
+    """ ensure str ends with a '/' """
     if str[-1:] != '/':
         str += '/'
     return str
 
-# ensure str doesn't end with a '/'
+
 def can_haznt_slash(str):
+    """ ensure str doesn't end with a '/' """
     while str[-1:] == '/':
         str = str[:-1]
     return str
 
+
 class DrStack(Cmd, object):
     """Naive command loop for the Good Doctor(tm)"""
 
-	# Set our default prompt
+    # Set our default prompt
     prompt = "dr> "
 
     # Allow some args to be set from the command loop
     settable = Cmd.settable + \
-            """default_flavor default flavor for 'create image'
+            """allow_shell allow shell access for unknown commands
+               default_flavor default flavor for 'create image'
                default_image default image for 'create image'
                auth_url authentiation URL
                password OS_PASSWORD
                tenant_name OS_TENANT_NAME
                username OS_USERNAME"""
 
-	# Override default cmd2 behaviours:
+    # Override default cmd2 behaviours:
     # Remove the following default commands from the list:
     del Cmd.do_shortcuts
 
@@ -75,6 +83,7 @@ class DrStack(Cmd, object):
     Cmd.kc = None
     Cmd.nc = None
 
+    allow_shell = True
     default_flavor = None
     default_image = None
     auth_token = None
@@ -101,121 +110,13 @@ class DrStack(Cmd, object):
 
     def default(self, line):
         """Attempt to execute unknown commands in a shell"""
-        self.do_shell(line)
+        if self.allow_shell:
+            self.do_shell(line)
+        else:
+            raise exceptions.CommandError(line)
 
     def do_EOF(self, line):
         return True
-
-    #@options([make_option('--flavor', help='instance type'),
-    #          make_option('--image', help='image to boot')
-    #         ])
-
-    def complete_create(self, text, line, bx, ex):
-        if not self.create_subjects:
-            (self.create_instance, self.create_subjects, self.create_commands) = \
-                    self.find_subjects(create_cmd)
-        if not text:
-            comp = self.create_commands[:]
-        else:
-            comp = [ c for c in self.create_commands if c.startswith(text) ]
-        return comp
-
-    def do_create(self, line, opts=None):
-        """create <subject>
-        Create various subject types"""
-        # Find all CREATE subjects
-        self._get_keystone()
-        self._get_nova()
-        if not self.create_subjects:
-            (self.create_instance, self.create_subjects, self.create_commands) = \
-                    self.find_subjects(create_cmd)
-        args = line.split()
-        self.create_subjects[args[0]](args)
-
-    def sc(self):
-        """create instance|user|tenant
-        Create various object types"""
-        args = line.split()
-        if line.startswith("instance"):
-            # create instances
-            self._get_nova()
-        else:
-            print "unknown create command: %s" % line
-
-    def complete_delete(self, text, line, bx, ex):
-        if not self.delete_subjects:
-            (self.delete_instance, self.delete_subjects, self.delete_commands) = \
-                    self.find_subjects(delete_cmd)
-        if not text:
-            comp = self.delete_commands[:]
-        else:
-            comp = [ c for c in self.delete_commands if c.startswith(text) ]
-        return comp
-
-    def do_delete(self, line):
-        """delete instance|image|user|tenant
-        Delete various object types"""
-        # Find all DELETE subjects
-        self._get_keystone()
-        self._get_nova()
-        if not self.delete_subjects:
-            (self.delete_instance, self.delete_subjects, self.delete_commands) = \
-                    self.find_subjects(delete_cmd)
-        args = line.split()
-        self.delete_subjects[args[0]](args)
-
-    def complete_list(self, text, line, bx, ex):
-        if not self.list_commands:
-            (self.list_instance, self.list_subjects, self.list_commands) = \
-                    self.find_subjects(list_cmd)
-        if not text:
-            comp = self.list_commands[:]
-        else:
-            comp = [ c for c in self.list_commands if c.startswith(text) ]
-        return comp
-
-    def do_list(self, line):
-        """list <subject>
-        List various subject types"""
-        # Find all LIST subjects
-        self._get_keystone()
-        self._get_nova()
-        if not self.list_subjects:
-            (self.list_instance, self.list_subjects, self.list_commands) = \
-                    self.find_subjects(list_cmd)
-        args = line.split()
-        self.list_subjects[args[0]](args)
-
-    def complete_show(self, text, line, bx, ex):
-        if not self.show_commands:
-            (self.show_instance, self.show_subjects, self.show_commands) = \
-                    self.find_subjects(show_cmd)
-        if not text:
-            comp = self.show_commands[:]
-        else:
-            comp = [ c for c in self.show_commands if c.startswith(text) ]
-        return comp
-
-    def do_show(self, line):
-        """show <subject>
-        Show details on various subject types"""
-        if not line:
-            # hacky-hack to display settable values 
-            # called from cmd2's do_set() with no args
-            Cmd.do_show(self, line)
-        else:
-            # Find all SHOW subjects
-            self._get_keystone()
-            self._get_nova()
-            if not self.show_subjects:
-                (self.show_instance, self.show_subjects, self.show_commands) = \
-                        self.find_subjects(show_cmd)
-            args = line.split()
-            self.show_subjects[args[0]](args)
-
-    def do_set(self, line):
-        super(DrStack, self).do_set(line)
-        self.setprompt()
 
     def emptyline(self):
         pass
@@ -231,13 +132,127 @@ class DrStack(Cmd, object):
     def postloop(self):
         print
 
+    #@options([make_option('--flavor', help='instance type'),
+    #          make_option('--image', help='image to boot')
+    #         ])
+
+    def complete_create(self, text, line, bx, ex):
+        if not self.create_subjects:
+            (self.create_instance,
+             self.create_subjects,
+             self.create_commands) = \
+                self.find_subjects(create_cmd)
+        if not text:
+            comp = self.create_commands[:]
+        else:
+            comp = [c for c in self.create_commands if c.startswith(text)]
+        return comp
+
+    def do_create(self, line, opts=None):
+        """create <subject>
+        Create various subject types"""
+        # Find all CREATE subjects
+        self._get_keystone()
+        self._get_nova()
+        if not self.create_subjects:
+            (self.create_instance,
+             self.create_subjects,
+             self.create_commands) = \
+                self.find_subjects(create_cmd)
+        args = line.split()
+        self.create_subjects[args[0]](args)
+
+    def complete_delete(self, text, line, bx, ex):
+        if not self.delete_subjects:
+            (self.delete_instance,
+             self.delete_subjects,
+             self.delete_commands) = \
+                    self.find_subjects(delete_cmd)
+        if not text:
+            comp = self.delete_commands[:]
+        else:
+            comp = [c for c in self.delete_commands if c.startswith(text)]
+        return comp
+
+    def do_delete(self, line):
+        """delete instance|image|user|tenant
+        Delete various object types"""
+        # Find all DELETE subjects
+        self._get_keystone()
+        self._get_nova()
+        if not self.delete_subjects:
+            (self.delete_instance,
+             self.delete_subjects,
+             self.delete_commands) = \
+                    self.find_subjects(delete_cmd)
+        args = line.split()
+        self.delete_subjects[args[0]](args)
+
+    def complete_list(self, text, line, bx, ex):
+        if not self.list_commands:
+            (self.list_instance, self.list_subjects, self.list_commands) = \
+                    self.find_subjects(list_cmd)
+        if not text:
+            comp = self.list_commands[:]
+        else:
+            comp = [c for c in self.list_commands if c.startswith(text)]
+        return comp
+
+    def do_list(self, line):
+        """list <subject>
+        List various subject types"""
+        # Find all LIST subjects
+        self._get_keystone()
+        self._get_nova()
+        if not self.list_subjects:
+            (self.list_instance, self.list_subjects, self.list_commands) = \
+                    self.find_subjects(list_cmd)
+        args = line.split()
+        self.list_subjects[args[0]](args)
+
+    def complete_show(self, text, line, bx, ex):
+        if not self.show_subjects:
+            (self.show_instance,
+             self.show_subjects,
+             self.show_commands) = \
+                    self.find_subjects(show_cmd)
+        if not text:
+            comp = self.show_commands[:]
+        else:
+            comp = [c for c in self.show_commands if c.startswith(text)]
+        return comp
+
+    def do_show(self, line):
+        """show <subject>
+        Show details on various subject types"""
+        if not line:
+            # hacky-hack to display settable values
+            # called from cmd2's do_set() with no args
+            Cmd.do_show(self, line)
+        else:
+            # Find all SHOW subjects
+            self._get_keystone()
+            self._get_nova()
+            if not self.show_subjects:
+                (self.show_instance,
+                 self.show_subjects,
+                 self.show_commands) = \
+                        self.find_subjects(show_cmd)
+            args = line.split()
+            self.show_subjects[args[0]](args)
+
+    def do_set(self, line):
+        super(DrStack, self).do_set(line)
+        self.setprompt()
+
     def find_subjects(self, verb_module):
         """Get all subject methods in the verb module"""
         subjects = {}
         subject_completion = []
         for verb in (v for v in dir(verb_module) if v.endswith('Command')):
             verb_instance = getattr(verb_module, verb)(top=self)
-            for subject in (s for s in dir(verb_instance) if s.startswith('on_')):
+            for subject in (s for s in dir(verb_instance)
+                    if s.startswith('on_')):
                 command = subject[3:].replace('_', '-')
                 callback = getattr(verb_instance, subject)
                 arguments = getattr(callback, 'arguments', [])
@@ -250,7 +265,7 @@ class DrStack(Cmd, object):
             self.kc = keystone_client.Client(
                     #endpoint=self.auth_url,
                     username=self.username,
-                    password=self.password, 
+                    password=self.password,
                     tenant_name=self.tenant_name,
                     auth_url=can_haznt_slash(self.auth_url))
             self.auth_token = self.kc.auth_token
@@ -281,7 +296,7 @@ class DrStack(Cmd, object):
                     return i
         return None
 
-    def set_auth(self, auth_token=None, 
+    def set_auth(self, auth_token=None,
                  auth_url=None, password=None,
                  tenant_name=None, username=None):
         self.auth_token = auth_token
@@ -297,10 +312,17 @@ class DrStack(Cmd, object):
         else:
             self.prompt = self.tenant_name + ":" + self.username + '> '
 
+
 def setdebug(level=0):
     httplib2.debuglevel = level
 
-def main():
+
+def main(argv):
+    """
+    Shell entry point, handles top-level command-line args and
+    hacks to make bits like readline and argparse/optparse behave
+    """
+    
     # hacky-hack for OS/X's lack of a real readline-capable python
     # to make tab completion work
     readline.parse_and_bind('bind ^I rl_complete')
@@ -327,20 +349,23 @@ def main():
     parser.add_argument('--default_image', dest='default_image',
                         default=os.environ.get('DEFAULT_IMAGE', ''),
                         help='Default image to create instance')
-    parser.add_argument('--debug', dest='debug', type=int,
-                        default=0)
-    (args, other) = parser.parse_known_args()
+    parser.add_argument('--debug', dest='debug', action='store_const',
+                        const=1, default=0)
+    (args, argv) = parser.parse_known_args(argv)
 
-    # Fix up sys.argv and remove the global args
-    sys.argv = [sys.argv[0]] + other
-    
+    # HACK(troyer): remove the above options from the command line
+    # so cmd2/optparse don't try to handle them again
+    sys.argv = argv
+
     # Configure included modules for appropriately explicit verbosity
     setdebug(args.debug)
 
     dr = DrStack()
-    dr.set_auth(auth_token=args.auth_token, 
-                auth_url=args.auth_url, password=args.password,
-                tenant_name=args.tenant_name, username=args.username)
+    dr.set_auth(auth_token=args.auth_token,
+                auth_url=args.auth_url,
+                password=args.password,
+                tenant_name=args.tenant_name,
+                username=args.username)
 
     # Pass in more args directly ... yuck ...
     if args.default_flavor:
@@ -348,10 +373,20 @@ def main():
     if args.default_image:
         dr.default_image = args.default_image
 
-    if len(sys.argv) > 1:
-        dr.onecmd(' '.join(sys.argv[1:]))
+    if len(argv) > 1:
+        dr.allow_shell = False
+        dr.onecmd(' '.join(argv[1:]))
     else:
         dr.cmdloop()
 
-if __name__ == '__main__':
-    main()
+
+def test_main(argv):
+    # The argparse/optparse/cmd2 modules muck about with sys.argv
+    # so we save it and restore at the end to let the tests
+    # run repeatedly without concatenating the args on each run
+    save_argv = sys.argv
+
+    main(argv)
+
+    # Put it back so the next test has a clean copy
+    sys.argv = save_argv

@@ -13,6 +13,8 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+#
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 """
 LIST command
@@ -20,6 +22,7 @@ LIST command
 
 from drstack import base
 from drstack import utils
+
 
 class ListCommand(base.Command):
 
@@ -33,7 +36,8 @@ class ListCommand(base.Command):
         utils.print_list(self.top.nc.images.list(), ['id', 'name'])
 
     def on_instance(self, args):
-        utils.print_list(self.top.nc.servers.list(detailed=False), ['id', 'name'])
+        utils.print_list(self.top.nc.servers.list(detailed=False),
+                ['id', 'name'])
 
     def on_keypair(self, args):
         utils.print_list(self.top.nc.keypairs.list(), ['id', 'name'])
@@ -45,7 +49,8 @@ class ListCommand(base.Command):
         utils.print_list(self.top.nc.security_groups.list(), ['id', 'name'])
 
     def on_security_group_rules(self, args):
-        utils.print_list(self.top.nc.security_group_rules.list(), ['id', 'name'])
+        utils.print_list(self.top.nc.security_group_rules.list(),
+                ['id', 'name'])
 
     def on_service(self, args):
         utils.print_list(self.top.kc.services.list(), ['id', 'name'])

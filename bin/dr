@@ -6,4 +6,7 @@ import sys
 from drstack import shell
 
 if __name__ == '__main__':
-    sys.exit(shell.main(sys.argv))
+    try:
+        shell.main(sys.argv)
+    except exceptions.CommandError, e:
+        print "Unknown command: %s" % e

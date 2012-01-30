@@ -13,6 +13,8 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+#
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 """
 SHOW command
@@ -20,6 +22,7 @@ SHOW command
 
 from drstack import base
 from drstack import utils
+
 
 class ShowCommand(base.Command):
 
@@ -38,7 +41,7 @@ class ShowCommand(base.Command):
             print "no image id"
             return
         i = self.top.nc.images.get(args[1])
-        i.bookmark = [x['href'] 
+        i.bookmark = [x['href']
                 for x in i.links if x['rel'] == 'bookmark'][0]
         utils.print_dict_fields(i, [
                 'id', 'name', 'bookmark', 'metadata', 'minDisk',
@@ -64,10 +67,12 @@ class ShowCommand(base.Command):
         if len(args) < 2:
             print "no tenant specified"
             return
-        utils.print_dict_fields(self.top.kc.tenants, args[1], ['id', 'name', 'enabled'])
+        utils.print_dict_fields(self.top.kc.tenants, args[1],
+                ['id', 'name', 'enabled'])
 
     def on_user(self):
         if len(args) < 2:
             print "no user specified"
             return
-        utils.print_dict_fields(self.top.kc.users, args[1], ['id', 'name', 'enabled'])
+        utils.print_dict_fields(self.top.kc.users, args[1],
+                ['id', 'name', 'enabled'])

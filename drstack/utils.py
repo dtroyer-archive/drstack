@@ -13,12 +13,15 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+#
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 """
 Utility functions for DrParse
 """
 
 from novaclient import utils
+
 
 def show_list(manager, id, fields=None):
     """Check id, lookup object, display result fields"""
@@ -28,11 +31,13 @@ def show_list(manager, id, fields=None):
     obj = manager.get(id)
     show_object(obj, fields)
 
+
 def print_dict_fields(obj, fields=[]):
     """Print specified object fields"""
     # Select the fields to print, then passthrough to novaclient
     a = {name: getattr(obj, name, '') for name in fields}
-    utils.print_dict(a)                
+    utils.print_dict(a)
+
 
 def print_list(objs, fields, formatters={}):
     """Print list of objects"""

@@ -6,6 +6,18 @@ from setuptools import setup, find_packages
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+requirements = [
+        'httplib2', 
+        'prettytable',
+        "python-keystoneclient >= 2012.1",
+        "python-novaclient >= 2012.1",
+]
+
+if sys.version_info < (2, 6):
+    requirements.append('simplejson')
+if sys.version_info < (2, 7):
+    requirements.append("argparse")
+
 setup(
     name = "python-drstack",
     version = "0.1.0",
@@ -13,13 +25,18 @@ setup(
     long_description = read('README.rst'),
     author = "Dean Troyer",
     author_email = "dtroyer@gmail.com",
-    packages = ['drstack'],
-    scripts = ['bin/dr.py'],
+    packages=find_packages(exclude=['bin']),
+    #packages = ['drstack'],
+    scripts = ['bin/dr'],
     url = "https://github.com/dtroyer/python-drstack",
     license = "Apache",
-    install_requires = [
-        "python-keystoneclient >= 0.0.0",
-        "python-novaclient >= 0.0.0",
-    ],
+    install_requires=requirements,
+
+    tests_require = ["nose", "mock", "mox"],
+    test_suite = "nose.collector",
+
+    #entry_points = {
+    #    'console_scripts': ['dr = drstack.shell:main']
+    #}
 )
 
