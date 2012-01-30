@@ -1,0 +1,9 @@
+*.log
+*.pyc
+*.swp
+*~
+.drstack-venv
+.venv
+build
+dist
+python-drstack.egg-info

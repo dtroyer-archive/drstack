@@ -1,0 +1,357 @@
+# Copyright 2012 Dean Troyer
+# Copyright 2011 OpenStack LLC.
+# All Rights Reserved
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+"""
+Command-line interface to the OpenStack Identity, Compute and Storage APIs
+"""
+
+import argparse
+import logging
+import os
+import rlcompleter
+import readline
+import sys
+
+from cmd2 import Cmd, make_option, options
+import httplib2
+
+from keystoneclient.v2_0 import client as keystone_client
+from novaclient.v1_1 import client as nova_client
+from novaclient import utils
+
+import drstack.create as create_cmd
+import drstack.delete as delete_cmd
+import drstack.list as list_cmd
+import drstack.show as show_cmd
+
+# Handle broken modules (keystoneclient I'm looking at you!)
+logging.basicConfig()
+
+# ensure str ends with a '/'
+def can_haz_slash(str):
+    if str[-1:] != '/':
+        str += '/'
+    return str
+
+# ensure str doesn't end with a '/'
+def can_haznt_slash(str):
+    while str[-1:] == '/':
+        str = str[:-1]
+    return str
+
+class DrStack(Cmd, object):
+    """Naive command loop for the Good Doctor(tm)"""
+
+	# Set our default prompt
+    prompt = "dr> "
+
+    # Allow some args to be set from the command loop
+    settable = Cmd.settable + \
+            """default_flavor default flavor for 'create image'
+               default_image default image for 'create image'
+               auth_url authentiation URL
+               password OS_PASSWORD
+               tenant_name OS_TENANT_NAME
+               username OS_USERNAME"""
+
+	# Override default cmd2 behaviours:
+    # Remove the following default commands from the list:
+    del Cmd.do_shortcuts
+
+    Cmd.gc = None
+    Cmd.kc = None
+    Cmd.nc = None
+
+    default_flavor = None
+    default_image = None
+    auth_token = None
+    auth_url = None
+    password = None
+    tenant_name = None
+    username = None
+
+    create_commands = ()
+    create_instance = None
+    create_subjects = None
+
+    delete_commands = ()
+    delete_instance = None
+    delete_subjects = None
+
+    list_commands = ()
+    list_instance = None
+    list_subjects = None
+
+    show_commands = ()
+    show_instance = None
+    show_subjects = None
+
+    def default(self, line):
+        """Attempt to execute unknown commands in a shell"""
+        self.do_shell(line)
+
+    def do_EOF(self, line):
+        return True
+
+    #@options([make_option('--flavor', help='instance type'),
+    #          make_option('--image', help='image to boot')
+    #         ])
+
+    def complete_create(self, text, line, bx, ex):
+        if not self.create_subjects:
+            (self.create_instance, self.create_subjects, self.create_commands) = \
+                    self.find_subjects(create_cmd)
+        if not text:
+            comp = self.create_commands[:]
+        else:
+            comp = [ c for c in self.create_commands if c.startswith(text) ]
+        return comp
+
+    def do_create(self, line, opts=None):
+        """create <subject>
+        Create various subject types"""
+        # Find all CREATE subjects
+        self._get_keystone()
+        self._get_nova()
+        if not self.create_subjects:
+            (self.create_instance, self.create_subjects, self.create_commands) = \
+                    self.find_subjects(create_cmd)
+        args = line.split()
+        self.create_subjects[args[0]](args)
+
+    def sc(self):
+        """create instance|user|tenant
+        Create various object types"""
+        args = line.split()
+        if line.startswith("instance"):
+            # create instances
+            self._get_nova()
+        else:
+            print "unknown create command: %s" % line
+
+    def complete_delete(self, text, line, bx, ex):
+        if not self.delete_subjects:
+            (self.delete_instance, self.delete_subjects, self.delete_commands) = \
+                    self.find_subjects(delete_cmd)
+        if not text:
+            comp = self.delete_commands[:]
+        else:
+            comp = [ c for c in self.delete_commands if c.startswith(text) ]
+        return comp
+
+    def do_delete(self, line):
+        """delete instance|image|user|tenant
+        Delete various object types"""
+        # Find all DELETE subjects
+        self._get_keystone()
+        self._get_nova()
+        if not self.delete_subjects:
+            (self.delete_instance, self.delete_subjects, self.delete_commands) = \
+                    self.find_subjects(delete_cmd)
+        args = line.split()
+        self.delete_subjects[args[0]](args)
+
+    def complete_list(self, text, line, bx, ex):
+        if not self.list_commands:
+            (self.list_instance, self.list_subjects, self.list_commands) = \
+                    self.find_subjects(list_cmd)
+        if not text:
+            comp = self.list_commands[:]
+        else:
+            comp = [ c for c in self.list_commands if c.startswith(text) ]
+        return comp
+
+    def do_list(self, line):
+        """list <subject>
+        List various subject types"""
+        # Find all LIST subjects
+        self._get_keystone()
+        self._get_nova()
+        if not self.list_subjects:
+            (self.list_instance, self.list_subjects, self.list_commands) = \
+                    self.find_subjects(list_cmd)
+        args = line.split()
+        self.list_subjects[args[0]](args)
+
+    def complete_show(self, text, line, bx, ex):
+        if not self.show_commands:
+            (self.show_instance, self.show_subjects, self.show_commands) = \
+                    self.find_subjects(show_cmd)
+        if not text:
+            comp = self.show_commands[:]
+        else:
+            comp = [ c for c in self.show_commands if c.startswith(text) ]
+        return comp
+
+    def do_show(self, line):
+        """show <subject>
+        Show details on various subject types"""
+        if not line:
+            # hacky-hack to display settable values 
+            # called from cmd2's do_set() with no args
+            Cmd.do_show(self, line)
+        else:
+            # Find all SHOW subjects
+            self._get_keystone()
+            self._get_nova()
+            if not self.show_subjects:
+                (self.show_instance, self.show_subjects, self.show_commands) = \
+                        self.find_subjects(show_cmd)
+            args = line.split()
+            self.show_subjects[args[0]](args)
+
+    def do_set(self, line):
+        super(DrStack, self).do_set(line)
+        self.setprompt()
+
+    def emptyline(self):
+        pass
+
+    def onecmd(self, line):
+        ret = super(DrStack, self).onecmd(line)
+        return ret
+
+    def preloop(self):
+        print "Welcome to DrStack"
+        super(DrStack, self).preloop()
+
+    def postloop(self):
+        print
+
+    def find_subjects(self, verb_module):
+        """Get all subject methods in the verb module"""
+        subjects = {}
+        subject_completion = []
+        for verb in (v for v in dir(verb_module) if v.endswith('Command')):
+            verb_instance = getattr(verb_module, verb)(top=self)
+            for subject in (s for s in dir(verb_instance) if s.startswith('on_')):
+                command = subject[3:].replace('_', '-')
+                callback = getattr(verb_instance, subject)
+                arguments = getattr(callback, 'arguments', [])
+                subjects[command] = callback
+                subject_completion.append(command + ' ')
+        return (verb_instance, subjects, subject_completion)
+
+    def _get_keystone(self):
+        if not Cmd.kc:
+            self.kc = keystone_client.Client(
+                    #endpoint=self.auth_url,
+                    username=self.username,
+                    password=self.password, 
+                    tenant_name=self.tenant_name,
+                    auth_url=can_haznt_slash(self.auth_url))
+            self.auth_token = self.kc.auth_token
+
+    def _get_nova(self):
+        #self._get_keystone()
+        if not Cmd.nc:
+            self.nc = nova_client.Client(
+                    self.username,
+                    self.password,
+                    self.tenant_name,
+                    can_haz_slash(self.auth_url))
+            #self.nc.client.auth_token = self.kc.auth_token
+
+    def lookup_flavor(self, flavor):
+        """Look up flavor by name"""
+        if flavor:
+            for f in self.nc.flavors.list():
+                if flavor == f.name:
+                    return f.id
+        return None
+
+    def lookup_image(self, image):
+        """Look up image by name"""
+        if image:
+            for i in self.nc.images.list():
+                if image == i.name:
+                    return i
+        return None
+
+    def set_auth(self, auth_token=None, 
+                 auth_url=None, password=None,
+                 tenant_name=None, username=None):
+        self.auth_token = auth_token
+        self.auth_url = auth_url
+        self.password = password
+        self.tenant_name = tenant_name
+        self.username = username
+        self.setprompt()
+
+    def setprompt(self, p=None):
+        if p:
+            self.prompt = p
+        else:
+            self.prompt = self.tenant_name + ":" + self.username + '> '
+
+def setdebug(level=0):
+    httplib2.debuglevel = level
+
+def main():
+    # hacky-hack for OS/X's lack of a real readline-capable python
+    # to make tab completion work
+    readline.parse_and_bind('bind ^I rl_complete')
+
+    parser = argparse.ArgumentParser(description="DrStack")
+    parser.add_argument('--auth_token', '--token', dest='auth_token',
+                        default=os.environ.get('OS_AUTH_TOKEN', ''),
+                        help='OpenStack authentication token')
+    parser.add_argument('--auth_url', dest='auth_url',
+                        default=os.environ.get('OS_AUTH_URL', ''),
+                        help='OpenStack authentication URL')
+    parser.add_argument('--password', dest='password',
+                        default=os.environ.get('OS_PASSWORD', ''),
+                        help='OpenStack password')
+    parser.add_argument('--tenant', '--tenant_name', dest='tenant_name',
+                        default=os.environ.get('OS_TENANT_NAME', ''),
+                        help='OpenStack tenant name')
+    parser.add_argument('--username', dest='username',
+                        default=os.environ.get('OS_USERNAME', ''),
+                        help='OpenStack user')
+    parser.add_argument('--default_flavor', dest='default_flavor',
+                        default=os.environ.get('DEFAULT_FLAVOR', ''),
+                        help='Default flavor to create instance')
+    parser.add_argument('--default_image', dest='default_image',
+                        default=os.environ.get('DEFAULT_IMAGE', ''),
+                        help='Default image to create instance')
+    parser.add_argument('--debug', dest='debug', type=int,
+                        default=0)
+    (args, other) = parser.parse_known_args()
+
+    # Fix up sys.argv and remove the global args
+    sys.argv = [sys.argv[0]] + other
+    
+    # Configure included modules for appropriately explicit verbosity
+    setdebug(args.debug)
+
+    dr = DrStack()
+    dr.set_auth(auth_token=args.auth_token, 
+                auth_url=args.auth_url, password=args.password,
+                tenant_name=args.tenant_name, username=args.username)
+
+    # Pass in more args directly ... yuck ...
+    if args.default_flavor:
+        dr.default_flavor = args.default_flavor
+    if args.default_image:
+        dr.default_image = args.default_image
+
+    if len(sys.argv) > 1:
+        dr.onecmd(' '.join(sys.argv[1:]))
+    else:
+        dr.cmdloop()
+
+if __name__ == '__main__':
+    main()
