@@ -21,7 +21,7 @@ Contributing
 DrStack is kept on `GitHub`__, please follow the usual protocol for social
 coding interaction and whatnot.
 
-__ https://github.com/dtroyer/python-drstack
+__ https://github.com/dtroyer/drstack
 
 Index
 =====

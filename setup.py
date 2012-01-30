@@ -19,7 +19,7 @@ if sys.version_info < (2, 7):
     requirements.append("argparse")
 
 setup(
-    name = "python-drstack",
+    name = "drstack",
     version = "0.1.0",
     description = "OpenStack command-line client",
     long_description = read('README.rst'),
@@ -28,7 +28,7 @@ setup(
     packages=find_packages(exclude=['bin']),
     #packages = ['drstack'],
     scripts = ['bin/dr'],
-    url = "https://github.com/dtroyer/python-drstack",
+    url = "https://github.com/dtroyer/drstack",
     license = "Apache",
     install_requires=requirements,
 
