@@ -3,7 +3,10 @@
 
 __requires__ = 'python-drstack>=0.1.0'
 import sys
+
 from drstack import shell
+from novaclient import exceptions
+
 
 if __name__ == '__main__':
     try:
