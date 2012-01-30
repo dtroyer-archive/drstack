@@ -33,7 +33,7 @@ class ShowCommand(base.Command):
         if len(args) < 2:
             print "need more args for flavor"
             return
-        utils.print_dict_fields(self.top.nc.flavors, args[1], [
+        utils.show_object(self.top.nc.flavors, args[1], [
                     'id', 'name', 'disk', 'ram', 'swap', 'vcpus'])
 
     def on_image(self, args):
@@ -43,7 +43,7 @@ class ShowCommand(base.Command):
         i = self.top.nc.images.get(args[1])
         i.bookmark = [x['href']
                 for x in i.links if x['rel'] == 'bookmark'][0]
-        utils.print_dict_fields(i, [
+        utils.show_object(i, [
                 'id', 'name', 'bookmark', 'metadata', 'minDisk',
                 'minRam', 'status'])
 
@@ -56,7 +56,7 @@ class ShowCommand(base.Command):
         s.flavor = self.top.nc.flavors.get(s.flavor['id']).name
         s.user = self.top.kc.users.get(s.user_id).name
         s.image = s.image['id']
-        utils.print_dict_fields(s, [
+        utils.show_object(s, [
                 'id', 'name', 'flavor', 'image',
                 'user', 'private_address',
                 'status', 'OS-EXT-STS:power_state',
@@ -67,12 +67,12 @@ class ShowCommand(base.Command):
         if len(args) < 2:
             print "no tenant specified"
             return
-        utils.print_dict_fields(self.top.kc.tenants, args[1],
+        utils.show_object(self.top.kc.tenants, args[1],
                 ['id', 'name', 'enabled'])
 
     def on_user(self):
         if len(args) < 2:
             print "no user specified"
             return
-        utils.print_dict_fields(self.top.kc.users, args[1],
+        utils.show_object(self.top.kc.users, args[1],
                 ['id', 'name', 'enabled'])

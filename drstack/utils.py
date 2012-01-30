@@ -23,13 +23,13 @@ Utility functions for DrParse
 from novaclient import utils
 
 
-def show_list(manager, id, fields=None):
+def show_object(manager, id, fields=None):
     """Check id, lookup object, display result fields"""
     if not id:
         print "no id specified"
         return
     obj = manager.get(id)
-    show_object(obj, fields)
+    print_dict_fields(obj, fields)
 
 
 def print_dict_fields(obj, fields=[]):
