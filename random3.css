@@ -1,0 +1,93 @@
+/*
+ * random3.css - random styles, TNG
+ */
+
+body {
+  font-family: 'Comic Sans MS', Verdana, sans-serif;
+  font-size: 76%;
+  margin-bottom: 0;
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 0;
+}
+
+div.spacer {
+  clear: both;
+}
+
+div.row {
+  clear: both;
+}
+
+div.row span.left {
+  float: left;
+  text-align: left;
+  width: 49%;
+}
+
+div.row span.right {
+  float: right;
+  text-align: right;
+  width: 49%;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:link {
+  color: #003399;
+}
+
+a:visited {
+  color: #003399;
+}
+
+a:active {
+  color: #003399;
+}
+
+a:hover {
+  color: #003399;
+  text-decoration: underline;
+}
+
+
+a.white:link {
+  color: #ffffff;
+}
+
+a.white:visited {
+  color: #ffffff;
+}
+
+a.white:active {
+  color: #ffffff;
+}
+
+a.white:hover {
+  color: #ffffff;
+}
+
+li.inline {
+  display: inline;
+  padding-left: 3px;
+  padding-right: 7px;
+  border-right: 1px dotted #066;
+}
+
+li.last {
+  display: inline;
+  padding-left: 3px;
+  padding-right: 3px;
+  border-right: 0px;
+}
+
+p {
+  margin: 1em 0.6em 1em 0.6em;
+}
+
+pre {/*moz 1.0/1.1/1.2.1, net 7.0/7.01 make this way too small, but i'm not going to go larger because monospace tends to run you into overflow pretty quick. prior moz and net are okay.*/
+	font-family: 'Lucida Console',monospace;
+	font-size: 1.0em;
+}

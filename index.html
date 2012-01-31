@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <title>random stuff</title>
+  
+  <style type="text/css">@import url("random3.css"); </style>
+
+<style type="text/css">
+
+
+div.sidebar {
+  border-left: 1px dotted #3366cc;
+  border-bottom: 1px dotted #3366cc;
+  padding-left: 0.4em;
+  padding-bottom: 0.2em;
+}
+
+#menu {
+	position: absolute;
+	top: 0;
+	left: 0;
+  margin: 0px 0px 0px 0px;
+  padding: 0em 0em;
+// ie sees these!!!
+//	margin: 0 0 0 0;
+//	padding: 0.5em 0 0 0;
+	color: #3366cc;
+	background: #fff;
+	border-top: 0;
+	border-left: 0;
+	border-right: 0;
+	border-bottom: 1px solid #3366cc;
+	width: 100%;/*ie5 box fix begins*/
+//	voice-family: "\"}\"";
+//	voice-family:inherit;
+}
+
+html>body #menu {
+	width: 100%;/*ie5 box fix ends*/
+}
+
+body>#menu {/*nasty dodge to deal with ie pc's unbelievable lack of position:fixed support*/
+	position: fixed;
+}
+
+#header {
+  background-color: #3366cc;
+  color: #ffffff;
+  font-family: 'Comic Sans MS', Verdana, sans-serif;
+  border: 1px solid #3366cc;
+  margin: 0px 0px 0px 0px;
+  padding-top: 3em;
+}
+
+#logoimg {
+  border: 0;
+  padding: 0.2em 0.2em;
+  margin: 0px 0px 0px 0px;
+  float:left;
+}
+
+#title {
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  vertical-align: middle;
+  padding-top: 4em;
+}
+
+#slogan {
+  font-size: 10px;
+  letter-spacing: 1px;
+  vertical-align: bottom;
+  padding-top: 1em;
+}
+
+</style>
+
+</head>
+
+<body>
+  <div class="body" id="menu">
+    <ul>
+      <li class="inline">
+        <a href="http://random.xr7.org">XR7</a>:&nbsp;
+        <a href="http://random.xr7.org">home</a>&nbsp;
+      <li class="inline">
+        <a href="http://faq.xr7.org">faq</a></li>
+      <li class="last">
+        <a href="http://drstack.xr7.org">DrStack</a></li>
+    </ul>
+  </div>
+
+  <div id="header">
+
+   <div class="row">
+    <span class="left">
+      <a class="white" href="http://random.xr7.org/pn/index.php">
+        <img src="pix/xr7/xr7logot.gif" id="logoimg" alt="" /></a>
+      <span id="title">
+        <a class="white" href="http://random.xr7.org/pn/index.php">
+          &nbsp;random stuff:&nbsp;DrStack
+        </a>
+      </span>
+    </span>
+    <span class="right" id="slogan">
+      Pointing out the obvious since 1997&nbsp;
+    </span>
+   </div>
+
+   <div class="spacer"></div>
+  </div>
+
+  <div>
+
+    <div class="sidebar" style="float:right; width:25%;">
+      <p>
+      DrStack: One CLI to bind them all...
+      </p>
+    </div>
+
+    <div>
+      <br />
+      <h2 style="margin-left:4em;">DrStack OpenStack CLI</h2>
+      <p>DrStack is an oddly named common command-line client for the 
+      OpenStack Identity, Compute and Image APIs. It is a thin wrapper 
+      to the stock python-keystoneclient, python-novaclient and glance 
+      libraries that implement the actual API clients.</p>
+
+      <p>DrStack's primary goal is to provide a unified shell command 
+      structure and (as much as possible) a common language to describe 
+      operations in OpenStack.</p>
+
+      <br /><br /><br />
+
+  </div>
+</body>
+
+</html>
