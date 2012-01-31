@@ -43,7 +43,7 @@ class ShowCommand(base.Command):
         i = self.top.nc.images.get(args[1])
         i.bookmark = [x['href']
                 for x in i.links if x['rel'] == 'bookmark'][0]
-        utils.show_object(i, [
+        utils.print_dict_fields(i, [
                 'id', 'name', 'bookmark', 'metadata', 'minDisk',
                 'minRam', 'status'])
 
@@ -56,7 +56,7 @@ class ShowCommand(base.Command):
         s.flavor = self.top.nc.flavors.get(s.flavor['id']).name
         s.user = self.top.kc.users.get(s.user_id).name
         s.image = s.image['id']
-        utils.show_object(s, [
+        utils.print_dict_fields(s, [
                 'id', 'name', 'flavor', 'image',
                 'user', 'private_address',
                 'status', 'OS-EXT-STS:power_state',
@@ -70,7 +70,7 @@ class ShowCommand(base.Command):
         utils.show_object(self.top.kc.tenants, args[1],
                 ['id', 'name', 'enabled'])
 
-    def on_user(self):
+    def on_user(self, args):
         if len(args) < 2:
             print "no user specified"
             return

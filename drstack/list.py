@@ -58,5 +58,5 @@ class ListCommand(base.Command):
     def on_tenant(self, args):
         utils.print_list(self.top.kc.tenants.list(limit=999), ['name', 'id'])
 
-    def on_user(self):
+    def on_user(self, args):
         utils.print_list(self.top.kc.users.list(limit=999), ['name', 'id'])
