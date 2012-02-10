@@ -54,7 +54,10 @@ class ShowCommand(base.Command):
         s = self.top.nc.servers.get(args[1])
         s.private_address = s.addresses['private'][0]['addr']
         s.flavor = self.top.nc.flavors.get(s.flavor['id']).name
-        s.user = self.top.kc.users.get(s.user_id).name
+        try:
+            s.user = self.top.kc.users.get(s.user_id).name
+        except:
+            s.user = ""
         s.image = s.image['id']
         utils.print_dict_fields(s, [
                 'id', 'name', 'flavor', 'image',
