@@ -80,9 +80,9 @@ class DrStack(Cmd, object):
     # Remove the following default commands from the list:
     del Cmd.do_shortcuts
 
-    Cmd.gc = None
-    Cmd.kc = None
-    Cmd.nc = None
+    gc = None
+    kc = None
+    nc = None
 
     allow_shell = True
     default_flavor = None
@@ -262,7 +262,7 @@ class DrStack(Cmd, object):
         return (verb_instance, subjects, subject_completion)
 
     def _get_keystone(self):
-        if not Cmd.kc:
+        if not self.kc:
             self.kc = keystone_client.Client(
                     endpoint=can_haznt_slash(self.auth_url),
                     username=self.username,
@@ -274,7 +274,7 @@ class DrStack(Cmd, object):
 
     def _get_nova(self):
         #self._get_keystone()
-        if not Cmd.nc:
+        if not self.nc:
             self.nc = nova_client.Client(
                     self.username,
                     self.password,
