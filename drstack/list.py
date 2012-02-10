@@ -19,8 +19,10 @@
 """
 LIST command
 """
+from keystoneclient import exceptions as kc_exceptions
 
 from drstack import base
+from drstack import exceptions
 from drstack import utils
 
 
@@ -43,7 +45,13 @@ class ListCommand(base.Command):
         utils.print_list(self.top.nc.keypairs.list(), ['id', 'name'])
 
     def on_role(self, args):
-        utils.print_list(self.top.kc.roles.list(), ['id', 'name'])
+        try:
+            utils.print_list(self.top.kc.roles.list(), ['id', 'name'])
+        except kc_exceptions.NotFound:
+            # Most likely this is not authorized
+            raise exceptions.NotAuthorized(None, 'list role')
+        else:
+            raise
 
     def on_security_group(self, args):
         utils.print_list(self.top.nc.security_groups.list(), ['id', 'name'])

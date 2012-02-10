@@ -30,10 +30,12 @@ import sys
 from cmd2 import Cmd, make_option, options
 import httplib2
 
-from keystoneclient.v2_0 import client as keystone_client
+#from keystoneclient.v2_0 import client as keystone_client
 from novaclient.v1_1 import client as nova_client
 from novaclient import exceptions
 from novaclient import utils
+
+import drstack.keystone as keystone_client
 
 import drstack.create as create_cmd
 import drstack.delete as delete_cmd
@@ -54,8 +56,7 @@ def can_haz_slash(str):
 
 def can_haznt_slash(str):
     """ ensure str doesn't end with a '/' """
-    while str[-1:] == '/':
-        str = str[:-1]
+    str = str.rstrip('/')
     return str
 
 
@@ -201,9 +202,9 @@ class DrStack(Cmd, object):
     def do_list(self, line):
         """list <subject>
         List various subject types"""
-        # Find all LIST subjects
         self._get_keystone()
         self._get_nova()
+        # Find all LIST subjects
         if not self.list_subjects:
             (self.list_instance, self.list_subjects, self.list_commands) = \
                     self.find_subjects(list_cmd)
@@ -263,11 +264,12 @@ class DrStack(Cmd, object):
     def _get_keystone(self):
         if not Cmd.kc:
             self.kc = keystone_client.Client(
-                    #endpoint=self.auth_url,
+                    endpoint=can_haznt_slash(self.auth_url),
                     username=self.username,
                     password=self.password,
                     tenant_name=self.tenant_name,
                     auth_url=can_haznt_slash(self.auth_url))
+            self.kc.authenticate()
             self.auth_token = self.kc.auth_token
 
     def _get_nova(self):
@@ -278,7 +280,7 @@ class DrStack(Cmd, object):
                     self.password,
                     self.tenant_name,
                     can_haz_slash(self.auth_url))
-            #self.nc.client.auth_token = self.kc.auth_token
+            self.nc.authenticate()
 
     def lookup_flavor(self, flavor):
         """Look up flavor by name"""
@@ -300,11 +302,12 @@ class DrStack(Cmd, object):
                  auth_url=None, password=None,
                  tenant_name=None, username=None):
         self.auth_token = auth_token
-        self.auth_url = auth_url
+        self.auth_url = can_haz_slash(auth_url)
         self.password = password
         self.tenant_name = tenant_name
         self.username = username
         self.setprompt()
+        self._get_keystone()
 
     def setprompt(self, p=None):
         if p:
@@ -322,7 +325,7 @@ def main(argv):
     Shell entry point, handles top-level command-line args and
     hacks to make bits like readline and argparse/optparse behave
     """
-    
+
     # hacky-hack for OS/X's lack of a real readline-capable python
     # to make tab completion work
     readline.parse_and_bind('bind ^I rl_complete')
@@ -375,7 +378,10 @@ def main(argv):
 
     if len(argv) > 1:
         dr.allow_shell = False
-        dr.onecmd(' '.join(argv[1:]))
+        try:
+            dr.onecmd(' '.join(argv[1:]))
+        except Exception as e:
+            print "%s" % e
     else:
         dr.cmdloop()
 
