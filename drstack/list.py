@@ -50,8 +50,6 @@ class ListCommand(base.Command):
         except kc_exceptions.NotFound:
             # Most likely this is not authorized
             raise exceptions.NotAuthorized(None, 'list role')
-        else:
-            raise
 
     def on_security_group(self, args):
         utils.print_list(self.top.nc.security_groups.list(), ['id', 'name'])
@@ -61,10 +59,22 @@ class ListCommand(base.Command):
                 ['id', 'name'])
 
     def on_service(self, args):
-        utils.print_list(self.top.kc.services.list(), ['id', 'name'])
+        try:
+            utils.print_list(self.top.kc.services.list(), ['id', 'name'])
+        except kc_exceptions.NotFound:
+            # Most likely this is not authorized
+            raise exceptions.NotAuthorized(None, 'list service')
 
     def on_tenant(self, args):
-        utils.print_list(self.top.kc.tenants.list(limit=999), ['name', 'id'])
+        try:
+            utils.print_list(self.top.kc.tenants.list(limit=999), ['name', 'id'])
+        except kc_exceptions.NotFound:
+            # Most likely this is not authorized
+            raise exceptions.NotAuthorized(None, 'list tenant')
 
     def on_user(self, args):
-        utils.print_list(self.top.kc.users.list(limit=999), ['name', 'id'])
+        try:
+            utils.print_list(self.top.kc.users.list(limit=999), ['name', 'id'])
+        except kc_exceptions.NotFound:
+            # Most likely this is not authorized
+            raise exceptions.NotAuthorized(None, 'list user')

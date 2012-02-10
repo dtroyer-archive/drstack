@@ -273,7 +273,6 @@ class DrStack(Cmd, object):
             self.auth_token = self.kc.auth_token
 
     def _get_nova(self):
-        #self._get_keystone()
         if not self.nc:
             self.nc = nova_client.Client(
                     self.username,

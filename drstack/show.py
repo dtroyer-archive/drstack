@@ -19,8 +19,10 @@
 """
 SHOW command
 """
+from keystoneclient import exceptions as kc_exceptions
 
 from drstack import base
+from drstack import exceptions
 from drstack import utils
 
 
@@ -70,12 +72,20 @@ class ShowCommand(base.Command):
         if len(args) < 2:
             print "no tenant specified"
             return
-        utils.show_object(self.top.kc.tenants, args[1],
-                ['id', 'name', 'enabled'])
+        try:
+            utils.show_object(self.top.kc.tenants, args[1],
+                    ['id', 'name', 'enabled'])
+        except kc_exceptions.NotFound:
+            # Most likely this is not authorized
+            raise exceptions.NotAuthorized(None, 'show tenant')
 
     def on_user(self, args):
         if len(args) < 2:
             print "no user specified"
             return
-        utils.show_object(self.top.kc.users, args[1],
-                ['id', 'name', 'enabled'])
+        try:
+            utils.show_object(self.top.kc.users, args[1],
+                    ['id', 'name', 'enabled'])
+        except kc_exceptions.NotFound:
+            # Most likely this is not authorized
+            raise exceptions.NotAuthorized(None, 'show user')
