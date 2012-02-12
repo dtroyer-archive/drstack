@@ -4,6 +4,8 @@ import os
 import mock
 import httplib2
 
+from glance import client
+
 from drstack import shell as drstack_shell
 from novaclient import exceptions
 from tests import utils
@@ -13,13 +15,6 @@ DEFAULT_AUTH_URL = 'http://127.0.0.1:5000/v2.0/'
 DEFAULT_TENANT_NAME = 'tenant_name'
 DEFAULT_USERNAME = 'username'
 DEFAULT_PASSWORD = 'password'
-
-AUTH_ARGS = {
-    'auth_url': DEFAULT_AUTH_URL,
-    'auth_token': '',
-    'tenant_name': DEFAULT_TENANT_NAME,
-    'username': DEFAULT_USERNAME,
-    'password': DEFAULT_PASSWORD}
 
 
 class ShellTest(utils.TestCase):
@@ -46,12 +41,19 @@ class ShellTest(utils.TestCase):
         self.kc_save = self.kc_patch.start()
         self.nc_patch = mock.patch('drstack.shell.DrStack._get_nova')
         self.nc_save = self.nc_patch.start()
+        self.gc_mock = mock.Mock(name='gc')
+        self.get_gc_mock = mock.Mock(name='_get_glance_client',
+                return_value=self.gc_mock)
+        self.gc_patch = mock.patch('drstack.shell.DrStack._get_glance_client',
+                self.get_gc_mock)
+        self.gc_save = self.gc_patch.start()
 
     def tearDown(self):
         global _old_env
         os.environ = _old_env
-        self.kc_patch.stop()
+        self.gc_patch.stop()
         self.nc_patch.stop()
+        self.kc_patch.stop()
 
     def test_help_unknown_command(self):
         # poor-man's skip until the exceptions are fixed
@@ -63,29 +65,25 @@ class ShellTest(utils.TestCase):
         shell('--debug help')
         assert httplib2.debuglevel == 1
 
-    def test_shell_args(self):
+    def test_create_image(self):
+        image = {'id': '1234'}
+        self.gc_mock.reset_mock()
+        self.gc_mock.add_image.return_value = image
 
-        def test_args(desc, default_args):
-            onecmd_mock = mock.Mock(desc)
-            with mock.patch('drstack.shell.DrStack.onecmd', onecmd_mock):
-                shell('list user')
-                onecmd_mock.assert_called_with(('list user'))
-                auth_mock = mock.Mock(desc)
-                with mock.patch('drstack.shell.DrStack.set_auth', auth_mock):
-                    shell('list user')
-                    assert auth_mock.call_args == ((), default_args)
-                    shell('--auth_url http://0.0.0.0:5000/ --tenant_name fred '
-                          '--username barney --password xyzpdq '
-                          'list user')
-                    assert auth_mock.call_args == ((), {
-                        'auth_url': 'http://0.0.0.0:5000/',
-                        'auth_token': '',
-                        'tenant_name': 'fred',
-                        'username': 'barney',
-                        'password': 'xyzpdq'})
+        shell('create image name="image_12345" location="file://tmp/x"')
+        assert self.gc_mock.add_image.called_with({
+                'name': 'image_12345',
+                'location': 'file://tmp/x',
+                })
 
-        test_args('default environment', AUTH_ARGS)
-        save_env, os.environ = os.environ, {}
-        test_args('no environment', {'auth_url': '', 'auth_token': '',
-                'tenant_name': '', 'username': '', 'password': ''})
-        os.environ = save_env
+        shell('create image id="abcd" name="image_12345" '
+                'is_public=yes location="file://tmp/x"'
+                'disk_format="xyz" container_format="pdq"')
+        assert self.gc_mock.add_image.called_with({
+                'id': 'abcd',
+                'name': 'image_12345',
+                'is_public': True,
+                'location': 'file://tmp/x',
+                'disk_format': 'xyz',
+                'container_format': 'pdq',
+                })

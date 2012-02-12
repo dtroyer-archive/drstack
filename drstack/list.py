@@ -35,6 +35,10 @@ class ListCommand(base.Command):
         utils.print_list(self.top.nc.flavors.list(), ['id', 'name'])
 
     def on_image(self, args):
+        self.top.get_glance_client()
+        utils.print_dict_list(self.top.gc.get_images(), ['id', 'name'])
+
+    def on_imagen(self, args):
         utils.print_list(self.top.nc.images.list(), ['id', 'name'])
 
     def on_instance(self, args):

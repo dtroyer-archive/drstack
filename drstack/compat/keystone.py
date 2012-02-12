@@ -55,3 +55,14 @@ class Client(keystone_client.Client):
         except:
             # Unscoped tokens don't return a service catalog
             _logger.exception("unable to retrieve service catalog with token")
+
+        # Get the glance endpoint
+        try:
+            self.glance_url = self.service_catalog.url_for(attr='region',
+                filter_value=self.region_name,
+                service_type='image', endpoint_type='publicURL')
+        except KeyError:
+            print "no glance url?"
+        except:
+            # Unscoped tokens don't return a service catalog
+            _logger.exception("unable to retrieve service catalog with token")

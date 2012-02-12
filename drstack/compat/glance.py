@@ -17,27 +17,22 @@
 # vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 """
-DELETE command
+Glance client
 """
 
-from drstack import base
-from drstack import utils
+# lifted from glance/bin/glance
+def get_image_fields_from_args(args):
+    """
+    Validate the set of arguments passed as field name/value pairs
+    and return them as a mapping.
+    """
+    fields = {}
+    for arg in args:
+        pieces = arg.strip(',').split('=')
+        if len(pieces) != 2:
+            msg = ("Arguments should be in the form of field=value. "
+                   "You specified %s." % arg)
+            raise RuntimeError(msg)
+        fields[pieces[0]] = pieces[1]
 
-
-class DeleteCommand(base.Command):
-
-    def __init__(self, top=None):
-        super(DeleteCommand, self).__init__(cmd='list', top=top)
-
-    def on_image(self, args):
-        self.top.get_glance_client()
-        if len(args) < 2:
-            print "image id missing"
-            return
-        self.top.gc.delete_image(args[1])
-
-    def on_instance(self, args):
-        if len(args) < 2:
-            print "instance id missing"
-            return
-        self.top.nc.servers.delete(args[1])
+    return fields

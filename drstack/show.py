@@ -19,6 +19,8 @@
 """
 SHOW command
 """
+
+from glance.common import exception as gc_exceptions
 from keystoneclient import exceptions as kc_exceptions
 
 from drstack import base
@@ -39,13 +41,28 @@ class ShowCommand(base.Command):
                     'id', 'name', 'disk', 'ram', 'swap', 'vcpus'])
 
     def on_image(self, args):
+        self.top.get_glance_client()
+        if len(args) < 2:
+            print "no image id"
+            return
+        image_id = args[1]
+        try:
+            i = self.top.gc.get_image_meta(image_id)
+        except gc_exceptions.NotFound:
+            print "No image with ID %s was found" % image_id
+            return
+        utils.print_dict_fields(i, [
+                'id', 'name', 'owner', 'is_public', 'min_disk',
+                'min_ram', 'status'])
+
+    def on_imagen(self, args):
         if len(args) < 2:
             print "no image id"
             return
         i = self.top.nc.images.get(args[1])
         i.bookmark = [x['href']
                 for x in i.links if x['rel'] == 'bookmark'][0]
-        utils.print_dict_fields(i, [
+        utils.print_obj_fields(i, [
                 'id', 'name', 'bookmark', 'metadata', 'minDisk',
                 'minRam', 'status'])
 
@@ -61,7 +78,7 @@ class ShowCommand(base.Command):
         except:
             s.user = ""
         s.image = s.image['id']
-        utils.print_dict_fields(s, [
+        utils.print_obj_fields(s, [
                 'id', 'name', 'flavor', 'image',
                 'user', 'private_address',
                 'status', 'OS-EXT-STS:power_state',

@@ -26,16 +26,18 @@ import os
 import rlcompleter
 import readline
 import sys
+import urlparse
 
 from cmd2 import Cmd, make_option, options
 import httplib2
 
+from glance import client as glance_client
 #from keystoneclient.v2_0 import client as keystone_client
 from novaclient.v1_1 import client as nova_client
 from novaclient import exceptions
 from novaclient import utils
 
-import drstack.keystone as keystone_client
+import drstack.compat.keystone as keystone_client
 
 import drstack.create as create_cmd
 import drstack.delete as delete_cmd
@@ -155,6 +157,7 @@ class DrStack(Cmd, object):
         # Find all CREATE subjects
         self._get_keystone()
         self._get_nova()
+        self._get_glance()
         if not self.create_subjects:
             (self.create_instance,
              self.create_subjects,
@@ -181,6 +184,7 @@ class DrStack(Cmd, object):
         # Find all DELETE subjects
         self._get_keystone()
         self._get_nova()
+        self._get_glance()
         if not self.delete_subjects:
             (self.delete_instance,
              self.delete_subjects,
@@ -204,6 +208,7 @@ class DrStack(Cmd, object):
         List various subject types"""
         self._get_keystone()
         self._get_nova()
+        self._get_glance()
         # Find all LIST subjects
         if not self.list_subjects:
             (self.list_instance, self.list_subjects, self.list_commands) = \
@@ -234,6 +239,7 @@ class DrStack(Cmd, object):
             # Find all SHOW subjects
             self._get_keystone()
             self._get_nova()
+            self._get_glance()
             if not self.show_subjects:
                 (self.show_instance,
                  self.show_subjects,
@@ -261,7 +267,28 @@ class DrStack(Cmd, object):
                 subject_completion.append(command + ' ')
         return (verb_instance, subjects, subject_completion)
 
+    def get_glance_client(self):
+        if not self.gc:
+            self.gc = self._get_glance_client()
+
+    def _get_glance_client(self):
+        """
+        Get glance client, auth with token from keystone
+        """
+        u = urlparse.urlparse(self.glance_url)
+        use_ssl = (self.glance_url is not None and u.scheme == 'https')
+        return glance_client.Client(
+                host=u.hostname,
+                port=u.port,
+                use_ssl=use_ssl, 
+                auth_tok=self.auth_token,
+                creds=None)
+
     def _get_keystone(self):
+        """
+        Authenticate with keystone and save the token.
+        Get URLs to other services from the returned service catalog.
+        """
         if not self.kc:
             self.kc = keystone_client.Client(
                     endpoint=can_haznt_slash(self.auth_url),
@@ -271,8 +298,12 @@ class DrStack(Cmd, object):
                     auth_url=can_haznt_slash(self.auth_url))
             self.kc.authenticate()
             self.auth_token = self.kc.auth_token
+            self.glance_url = self.kc.glance_url
 
     def _get_nova(self):
+        """
+        Get nova client
+        """
         if not self.nc:
             self.nc = nova_client.Client(
                     self.username,
