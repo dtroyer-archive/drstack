@@ -64,11 +64,41 @@ subjects for each command verb.
 
 **CREATE**
 
+::
+
+   image      instance
+
 **DELETE**
+
+::
+
+   image      instance
 
 **LIST**
 
+::
+
+   flavor                 image                  
+   instance               keypair                role                 
+   security-group         security-group-rules   service              
+   tenant                 user                 
+
 **SHOW**
+
+::
+
+   flavor     image      instance   tenant     user
+
+Internals
+=========
+
+DrStack is a new command-line interface to the existing OpenStack client
+libraries (python-novaclient, python-keystoneclient, glance).  It borrows
+some code from those libraries to change the behaviour; those files are
+located in drstack.compat.
+
+In the case of glance, since the client bits are not yet separated from
+the main code yet, the entire thing must be installed.
 
 Sample Session
 ==============
@@ -104,6 +134,26 @@ Configure via env and run DrStack::
    | status                 | ACTIVE                               |
    | user                   | vish                                 |
    +------------------------+--------------------------------------+
+   dtroyer@beaker:~/src/openstack/drstack $ dr create image name=DrStack_0.1.0_source <dist/drstack-0.1.0.tar.gz
+   Added new image with ID: 62f39031-2d3d-47d4-a467-6f9de0d1b7c3
+   dtroyer@beaker:~/src/openstack/drstack $ dr list image
+   +--------------------------------------+--------------------------------------------+
+   |                  id                  |                    name                    |
+   +--------------------------------------+--------------------------------------------+
+   | 62f39031-2d3d-47d4-a467-6f9de0d1b7c3 | DrStack_0.1.0_source                       |
+   +--------------------------------------+--------------------------------------------+
+   dtroyer@beaker:~/src/openstack/drstack $ dr show image 62f39031-2d3d-47d4-a467-6f9de0d1b7c3
+   +-----------+--------------------------------------+
+   | Property  |                Value                 |
+   +-----------+--------------------------------------+
+   | id        | 62f39031-2d3d-47d4-a467-6f9de0d1b7c3 |
+   | is_public | False                                |
+   | min_disk  | 0                                    |
+   | min_ram   | 0                                    |
+   | name      | DrStack_0.1.0_source                 |
+   | owner     | 2136df1a9984451eb470b37039d16dd2     |
+   | status    | active                               |
+   +-----------+--------------------------------------+
 
 DrStack used cmd2 to give it a built-in shell::
 
