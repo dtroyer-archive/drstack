@@ -114,6 +114,7 @@ class CreateCommand(base.Command):
                 print piece
 
     def on_instance(self, args):
+        self.top._get_nova()
         flavor = self.top.default_flavor
         image = self.top.default_image
         name = None

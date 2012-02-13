@@ -34,6 +34,7 @@ class ShowCommand(base.Command):
         super(ShowCommand, self).__init__(cmd='show', top=top)
 
     def on_flavor(self, args):
+        self.top._get_nova()
         if len(args) < 2:
             print "need more args for flavor"
             return
@@ -56,6 +57,7 @@ class ShowCommand(base.Command):
                 'min_ram', 'status'])
 
     def on_imagen(self, args):
+        self.top._get_nova()
         if len(args) < 2:
             print "no image id"
             return
@@ -67,6 +69,7 @@ class ShowCommand(base.Command):
                 'minRam', 'status'])
 
     def on_instance(self, args):
+        self.top._get_nova()
         if len(args) < 2:
             print "no server specified"
             return

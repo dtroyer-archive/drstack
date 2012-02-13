@@ -37,6 +37,7 @@ class DeleteCommand(base.Command):
         self.top.gc.delete_image(args[1])
 
     def on_instance(self, args):
+        self.top._get_nova()
         if len(args) < 2:
             print "instance id missing"
             return

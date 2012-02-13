@@ -155,9 +155,6 @@ class DrStack(Cmd, object):
         """create <subject>
         Create various subject types"""
         # Find all CREATE subjects
-        self._get_keystone()
-        self._get_nova()
-        self._get_glance()
         if not self.create_subjects:
             (self.create_instance,
              self.create_subjects,
@@ -182,9 +179,6 @@ class DrStack(Cmd, object):
         """delete instance|image|user|tenant
         Delete various object types"""
         # Find all DELETE subjects
-        self._get_keystone()
-        self._get_nova()
-        self._get_glance()
         if not self.delete_subjects:
             (self.delete_instance,
              self.delete_subjects,
@@ -206,9 +200,6 @@ class DrStack(Cmd, object):
     def do_list(self, line):
         """list <subject>
         List various subject types"""
-        self._get_keystone()
-        self._get_nova()
-        self._get_glance()
         # Find all LIST subjects
         if not self.list_subjects:
             (self.list_instance, self.list_subjects, self.list_commands) = \
@@ -237,9 +228,6 @@ class DrStack(Cmd, object):
             Cmd.do_show(self, line)
         else:
             # Find all SHOW subjects
-            self._get_keystone()
-            self._get_nova()
-            self._get_glance()
             if not self.show_subjects:
                 (self.show_instance,
                  self.show_subjects,

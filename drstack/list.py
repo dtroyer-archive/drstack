@@ -32,6 +32,7 @@ class ListCommand(base.Command):
         super(ListCommand, self).__init__(cmd='list', top=top)
 
     def on_flavor(self, args):
+        self.top._get_nova()
         utils.print_list(self.top.nc.flavors.list(), ['id', 'name'])
 
     def on_image(self, args):
@@ -39,13 +40,16 @@ class ListCommand(base.Command):
         utils.print_dict_list(self.top.gc.get_images(), ['id', 'name'])
 
     def on_imagen(self, args):
+        self.top._get_nova()
         utils.print_list(self.top.nc.images.list(), ['id', 'name'])
 
     def on_instance(self, args):
+        self.top._get_nova()
         utils.print_list(self.top.nc.servers.list(detailed=False),
                 ['id', 'name'])
 
     def on_keypair(self, args):
+        self.top._get_nova()
         utils.print_list(self.top.nc.keypairs.list(), ['id', 'name'])
 
     def on_role(self, args):
@@ -56,9 +60,11 @@ class ListCommand(base.Command):
             raise exceptions.NotAuthorized(None, 'list role')
 
     def on_security_group(self, args):
+        self.top._get_nova()
         utils.print_list(self.top.nc.security_groups.list(), ['id', 'name'])
 
     def on_security_group_rules(self, args):
+        self.top._get_nova()
         utils.print_list(self.top.nc.security_group_rules.list(),
                 ['id', 'name'])
 
