@@ -20,6 +20,7 @@
 Glance client
 """
 
+
 # lifted from glance/bin/glance
 def get_image_fields_from_args(args):
     """

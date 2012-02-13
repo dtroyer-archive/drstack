@@ -77,7 +77,8 @@ class ListCommand(base.Command):
 
     def on_tenant(self, args):
         try:
-            utils.print_list(self.top.kc.tenants.list(limit=999), ['name', 'id'])
+            utils.print_list(self.top.kc.tenants.list(limit=999),
+                ['name', 'id'])
         except kc_exceptions.NotFound:
             # Most likely this is not authorized
             raise exceptions.NotAuthorized(None, 'list tenant')

@@ -268,7 +268,7 @@ class DrStack(Cmd, object):
         return glance_client.Client(
                 host=u.hostname,
                 port=u.port,
-                use_ssl=use_ssl, 
+                use_ssl=use_ssl,
                 auth_tok=self.auth_token,
                 creds=None)
 

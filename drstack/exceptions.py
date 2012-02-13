@@ -36,6 +36,7 @@ class CommandException(Exception):
             retstr = "%s" % (self.message)
         return retstr
 
+
 class NotAuthorized(CommandException):
     """
     Command requires more authorization than is available

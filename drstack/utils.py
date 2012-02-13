@@ -24,6 +24,7 @@ import prettytable
 
 from novaclient import utils
 
+
 # lifted from glance/common/utils.py
 def bool_from_string(subject):
     """
@@ -43,6 +44,7 @@ def bool_from_string(subject):
         if subject.strip().lower() in ('true', 'on', '1'):
             return True
     return False
+
 
 def show_object(manager, id, fields=None):
     """Check id, lookup object, display result fields"""
