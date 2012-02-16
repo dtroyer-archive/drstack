@@ -33,6 +33,20 @@ class ShowCommand(base.Command):
     def __init__(self, top=None):
         super(ShowCommand, self).__init__(cmd='show', top=top)
 
+    def on_catalog(self, args):
+        service_name = args[1] if len(args) > 1 else None
+        endpoint_type = args[2] if len(args) > 2 else None
+        catalog = self.top.kc.service_catalog.catalog.get('serviceCatalog', [])
+        for service in catalog:
+            if service_name and service_name != service['type']:
+                continue
+            endpoints = service['endpoints']
+            for endpoint in endpoints:
+                for k in endpoint.keys():
+                    if endpoint_type and endpoint_type == k:
+                        print "%s.%s=%s" % (service['type'], k,
+                                endpoint.get(k, ''))
+
     def on_flavor(self, args):
         self.top._get_nova()
         if len(args) < 2:
@@ -98,6 +112,10 @@ class ShowCommand(base.Command):
         except kc_exceptions.NotFound:
             # Most likely this is not authorized
             raise exceptions.NotAuthorized(None, 'show tenant')
+
+    def on_token(self, args):
+        if self.top.auth_token:
+            print self.top.auth_token
 
     def on_user(self, args):
         if len(args) < 2:

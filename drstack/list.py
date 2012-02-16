@@ -31,6 +31,19 @@ class ListCommand(base.Command):
     def __init__(self, top=None):
         super(ListCommand, self).__init__(cmd='list', top=top)
 
+    def on_catalog(self, args):
+        service_name = args[1] if len(args) > 1 else None
+        for service in self.top.kc.service_catalog.catalog.get(
+                'serviceCatalog', []):
+            if service_name and service_name != service['type']:
+                continue
+            endpoints = service['endpoints']
+            for endpoint in endpoints:
+                for k in endpoint.keys():
+                    if not k in ['id']:
+                        print "%s.%s=%s" % (service['type'], k,
+                                endpoint.get(k, ''))
+
     def on_flavor(self, args):
         self.top._get_nova()
         utils.print_list(self.top.nc.flavors.list(), ['id', 'name'])

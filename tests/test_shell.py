@@ -19,7 +19,8 @@ AUTH_ARGS = {
     'auth_token': '',
     'tenant_name': DEFAULT_TENANT_NAME,
     'username': DEFAULT_USERNAME,
-    'password': DEFAULT_PASSWORD}
+    'password': DEFAULT_PASSWORD
+}
 
 
 class ShellTest(utils.TestCase):
