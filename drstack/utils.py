@@ -52,7 +52,7 @@ def show_object(manager, id, fields=None):
         print "no id specified"
         return
     obj = manager.get(id)
-    print_dict_fields(obj, fields)
+    print_obj_fields(obj, fields)
 
 
 def print_obj_fields(obj, fields=[]):
