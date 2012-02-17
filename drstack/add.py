@@ -17,38 +17,24 @@
 # vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 """
-DELETE command
+ADD command
 """
 
 from drstack import base
 from drstack import utils
 
 
-class DeleteCommand(base.Command):
+class AddCommand(base.Command):
 
     def __init__(self, top=None):
-        super(DeleteCommand, self).__init__(cmd='delete', top=top)
+        super(AddCommand, self).__init__(cmd='add', top=top)
 
-    def on_image(self, args):
-        self.top.get_glance_client()
-        if len(args) < 2:
-            print "image id missing"
-            return
-        self.top.gc.delete_image(args[1])
-
-    def on_instance(self, args):
-        self.top._get_nova()
-        if len(args) < 2:
-            print "instance id missing"
-            return
-        self.top.nc.servers.delete(args[1])
-
-    def on_role(self, args):
-        if len(args) < 2:
-            print "role id missing"
+    def on_role_user(self, args):
+        if len(args) < 4:
+            print "Not enough args: 3 required"
             return
         try:
-            self.top.kc.roles.delete(args[1])
-            print "Role not deleted"
+            self.top.kc.roles.add_user_role(args[1], args[2], args[3])
+            print "Role added to user"
         except:
-            print "Role not deleted"
+            print "Role not added to user"

@@ -102,6 +102,17 @@ class ShowCommand(base.Command):
                 'OS-EXT-STS:power_state',
                 'OS-DCF:diskConfig'])
 
+    def on_role(self, args):
+        if len(args) < 2:
+            print "no role specified"
+            return
+        try:
+            utils.show_object(self.top.kc.roles, args[1],
+                    ['id', 'name'])
+        except kc_exceptions.NotFound:
+            # Most likely this is not authorized
+            raise exceptions.NotAuthorized(None, 'show role')
+
     def on_tenant(self, args):
         if len(args) < 2:
             print "no tenant specified"

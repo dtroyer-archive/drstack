@@ -33,7 +33,7 @@ from drstack import utils
 class CreateCommand(base.Command):
 
     def __init__(self, top=None):
-        super(CreateCommand, self).__init__(cmd='list', top=top)
+        super(CreateCommand, self).__init__(cmd='create', top=top)
 
     # Based on glance/bin/glance.image_add()
     def on_image(self, args):
@@ -148,3 +148,9 @@ class CreateCommand(base.Command):
             time.sleep(2)
             status = self.top.nc.servers.get(self.last_server.id).status
         print "server %s status: %s" % (self.last_server.id, status)
+
+    def on_role(self, args):
+        if len(args) < 2:
+            print "role name missing"
+            return
+        print self.top.kc.roles.create(args[1])

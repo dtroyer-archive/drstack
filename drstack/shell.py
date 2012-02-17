@@ -39,9 +39,11 @@ from novaclient import utils
 
 import drstack.compat.keystone as keystone_client
 
+import drstack.add as add_cmd
 import drstack.create as create_cmd
 import drstack.delete as delete_cmd
 import drstack.list as list_cmd
+import drstack.remove as remove_cmd
 import drstack.show as show_cmd
 
 
@@ -95,6 +97,10 @@ class DrStack(Cmd, object):
     tenant_name = None
     username = None
 
+    add_commands = ()
+    add_instance = None
+    add_subjects = None
+
     create_commands = ()
     create_instance = None
     create_subjects = None
@@ -106,6 +112,10 @@ class DrStack(Cmd, object):
     list_commands = ()
     list_instance = None
     list_subjects = None
+
+    remove_commands = ()
+    remove_instance = None
+    remove_subjects = None
 
     show_commands = ()
     show_instance = None
@@ -138,6 +148,30 @@ class DrStack(Cmd, object):
     #@options([make_option('--flavor', help='instance type'),
     #          make_option('--image', help='image to boot')
     #         ])
+
+    def complete_add(self, text, line, bx, ex):
+        if not self.add_subjects:
+            (self.add_instance,
+             self.add_subjects,
+             self.add_commands) = \
+                self.find_subjects(add_cmd)
+        if not text:
+            comp = self.add_commands[:]
+        else:
+            comp = [c for c in self.add_commands if c.startswith(text)]
+        return comp
+
+    def do_add(self, line, opts=None):
+        """add <subject> <subject>
+        Add various subject types to other subject types"""
+        # Find all ADD subjects
+        if not self.add_subjects:
+            (self.add_instance,
+             self.add_subjects,
+             self.add_commands) = \
+                self.find_subjects(add_cmd)
+        args = line.split()
+        self.add_subjects[args[0]](args)
 
     def complete_create(self, text, line, bx, ex):
         if not self.create_subjects:
@@ -206,6 +240,30 @@ class DrStack(Cmd, object):
                     self.find_subjects(list_cmd)
         args = line.split()
         self.list_subjects[args[0]](args)
+
+    def complete_remove(self, text, line, bx, ex):
+        if not self.remove_subjects:
+            (self.remove_instance,
+             self.remove_subjects,
+             self.remove_commands) = \
+                self.find_subjects(remove_cmd)
+        if not text:
+            comp = self.remove_commands[:]
+        else:
+            comp = [c for c in self.remove_commands if c.startswith(text)]
+        return comp
+
+    def do_remove(self, line, opts=None):
+        """remove <subject> <subject>
+        Remove various subject types from other subject types"""
+        # Find all REMOVE subjects
+        if not self.remove_subjects:
+            (self.remove_instance,
+             self.remove_subjects,
+             self.remove_commands) = \
+                self.find_subjects(remove_cmd)
+        args = line.split()
+        self.remove_subjects[args[0]](args)
 
     def complete_show(self, text, line, bx, ex):
         if not self.show_subjects:
