@@ -39,7 +39,7 @@ class Client(keystone_client.Client):
         """ Set the client's service catalog from the response data. """
         self.service_catalog = service_catalog.ServiceCatalog(body)
         try:
-            self.auth_token = self.service_catalog.get_token()
+            self.auth_token = self.service_catalog.get_token()['id']
         except KeyError:
             raise exceptions.AuthorizationFailure()
 
