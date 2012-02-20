@@ -118,9 +118,13 @@ class ShowCommand(base.Command):
             print "no tenant specified"
             return
         try:
-            utils.show_object(self.top.kc.tenants, args[1],
-                    ['id', 'name', 'enabled'])
+            utils.print_obj_fields(
+                    self.top.kc.tenants.get_by_name_or_id(args[1]),
+                    ['id', 'name', 'enabled', 'description'])
         except kc_exceptions.NotFound:
+            print "tenant %s not found" % args[1]
+        except Exception, e:
+            print "other exception: %s" % e
             # Most likely this is not authorized
             raise exceptions.NotAuthorized(None, 'show tenant')
 
