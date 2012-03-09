@@ -100,6 +100,12 @@ located in drstack.compat.
 In the case of glance, since the client bits are not yet separated from
 the main code yet, the entire thing must be installed.
 
+DrStack also implements some extenstions to the standard APIs.  These
+are located in drstack/compat and extend the standard objects with
+functionality that is not yet merged into the clients.  At this time, this
+is primarily the ability to use tenant, user, role names, etc in
+place of the IDs.
+
 Sample Session
 ==============
 
@@ -204,33 +210,50 @@ DrStack used cmd2 to give it a built-in shell::
 
 Do some keystone stuff::
 
-   admin:admin> list tenant
-   +--------------------+----------------------------------+
-   |        name        |                id                |
-   +--------------------+----------------------------------+
-   | admin              | 1be4461c727f4227906f000ffae827a0 |
-   | demo               | 4f5bb0a385a44c598acde24af0f9e983 |
-   | dtroyer            | efdbcaca932946928074d93852fa5d2d |
-   +--------------------+----------------------------------+
-   admin:admin> list user
-   +----------+----------------------------------+
-   |   name   |                id                |
-   +----------+----------------------------------+
-   | admin    | 28f65254922147619290fbcd0792ff15 |
-   | demo     | 61c09d4570c24d01994de7829c4d0af0 |
-   | dtroyer  | bd0ce17d88cf4a879cb0bdbbd2244a44 |
-   +----------+----------------------------------+
-   admin:admin> list role
-   +----+----------------------+
-   | id |         name         |
-   +----+----------------------+
-   | 1  | admin                |
-   | 2  | Member               |
-   | 3  | KeystoneAdmin        |
-   | 4  | KeystoneServiceAdmin |
-   | 5  | sysadmin             |
-   | 6  | netadmin             |
-   +----+----------------------+
+    admin:admin> list tenant
+    +--------------------+----------------------------------+---------+-------------+
+    |        name        |                id                | enabled | description |
+    +--------------------+----------------------------------+---------+-------------+
+    | admin              | dd1b216136784d93a6f7a4acb8e94937 | True    | None        |
+    | demo               | 2de2664d44fb4e44b92d859eb123d378 | True    | None        |
+    | invisible_to_admin | 71d2299e014f41a3b53fbb7efe636ea2 | True    | None        |
+    +--------------------+----------------------------------+---------+-------------+
+    admin:admin> show tenant admin
+    +-------------+----------------------------------+
+    |   Property  |              Value               |
+    +-------------+----------------------------------+
+    | description | None                             |
+    | enabled     | True                             |
+    | id          | dd1b216136784d93a6f7a4acb8e94937 |
+    | name        | admin                            |
+    +-------------+----------------------------------+
+    admin:admin> list user
+    +-------+----------------------------------+---------+-------------------+
+    |  name |                id                | enabled |       email       |
+    +-------+----------------------------------+---------+-------------------+
+    | admin | 7b184626eebc42d6bd703f67e89465df | True    | admin@example.com |
+    | demo  | 60ed0e0fda3448a5ac1b949cf44f5f21 | True    | admin@example.com |
+    +-------+----------------------------------+---------+-------------------+
+    admin:admin> show user demo
+    +----------+----------------------------------+
+    | Property |              Value               |
+    +----------+----------------------------------+
+    | email    | admin@example.com                |
+    | enabled  | True                             |
+    | id       | 60ed0e0fda3448a5ac1b949cf44f5f21 |
+    | name     | demo                             |
+    +----------+----------------------------------+
+    admin:admin> list role
+    +----+----------------------+
+    | id |         name         |
+    +----+----------------------+
+    | 1  | admin                |
+    | 2  | Member               |
+    | 3  | KeystoneAdmin        |
+    | 4  | KeystoneServiceAdmin |
+    | 5  | sysadmin             |
+    | 6  | netadmin             |
+    +----+----------------------+
 
 Since DrStack uses cmd2, it has access to the python interpreter::
 

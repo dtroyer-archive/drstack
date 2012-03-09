@@ -66,8 +66,23 @@ class ListCommand(base.Command):
         utils.print_list(self.top.nc.keypairs.list(), ['id', 'name'])
 
     def on_role(self, args):
+        if len(args) > 1:
+            try:
+                user_ref = self.top.kc.users.get_by_name_or_id(args[1])
+                user_id = user_ref.id
+            except kc_exceptions.NotFound:
+                print "tenant %s not found" % args[1]
+                return
+        else:
+            user_id = None
         try:
-            utils.print_list(self.top.kc.roles.list(), ['id', 'name'])
+            if user_id:
+                # FIXME(dtroyer): apparently UserController.get_user_roles()
+                #                 is not implemented in keystone
+                utils.print_list(self.top.kc.roles.roles_for_user(user_id),
+                        ['id', 'name'])
+            else:
+                utils.print_list(self.top.kc.roles.list(), ['id', 'name'])
         except kc_exceptions.NotFound:
             # Most likely this is not authorized
             raise exceptions.NotAuthorized(None, 'list role')
@@ -89,7 +104,7 @@ class ListCommand(base.Command):
             raise exceptions.NotAuthorized(None, 'list service')
 
     def on_tenant(self, args):
-        kwargs = {'limit': 999}
+        kwargs = {}
         try:
             utils.print_list(self.top.kc.tenants.list(**kwargs),
                     ['name', 'id', 'enabled', 'description'])
@@ -98,8 +113,19 @@ class ListCommand(base.Command):
             raise exceptions.NotAuthorized(None, 'list tenant')
 
     def on_user(self, args):
+        if len(args) > 1:
+            try:
+                tenant_ref = self.top.kc.tenants.get_by_name_or_id(args[1])
+                tenant_id = tenant_ref.id
+            except kc_exceptions.NotFound:
+                print "tenant %s not found" % args[1]
+                return
+        else:
+            tenant_id = None
         try:
-            utils.print_list(self.top.kc.users.list(limit=999), ['name', 'id'])
+            utils.print_list(self.top.kc.users.list(tenant_id=tenant_id,
+                                                    limit=999),
+                    ['name', 'id', 'enabled', 'email'])
         except kc_exceptions.NotFound:
             # Most likely this is not authorized
             raise exceptions.NotAuthorized(None, 'list user')

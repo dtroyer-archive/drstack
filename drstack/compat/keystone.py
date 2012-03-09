@@ -25,6 +25,7 @@ import logging
 from keystoneclient import exceptions
 from keystoneclient import service_catalog
 from keystoneclient.v2_0 import client as keystone_client
+from keystoneclient.v2_0 import users as keystone_users
 
 
 _logger = logging.getLogger(__name__)
@@ -34,6 +35,9 @@ class Client(keystone_client.Client):
 
     def __init__(self, endpoint=None, **kwargs):
         super(Client, self).__init__(endpoint=endpoint, **kwargs)
+
+        # Use our UserManager
+        self.users = UserManager(self)
 
     def _extract_service_catalog(self, url, body):
         """ Set the client's service catalog from the response data. """
@@ -66,3 +70,33 @@ class Client(keystone_client.Client):
         except:
             # Unscoped tokens don't return a service catalog
             _logger.exception("unable to retrieve service catalog with token")
+
+
+class UserManager(keystone_users.UserManager):
+
+    def __init__(self, *args, **kwargs):
+        super(UserManager, self).__init__(*args, **kwargs)
+
+    def get_by_name(self, user_name):
+        """
+        Get a user by name.
+        """
+        try:
+            return (u for u in self.list() if u.name == user_name).next()
+        except StopIteration:
+            msg = 'User %s not found' % user_name
+            raise exceptions.NotFound(msg)
+
+    def get_by_name_or_id(self, user):
+        """
+        Get a user by name, fall back to id if not found.
+        """
+        try:
+            user_ref = self.get_by_name(user)
+        except exceptions.NotFound:
+            try:
+                user_ref = self.get(user)
+            except Exception, e:
+                msg = 'User %s not found' % user
+                raise exceptions.NotFound(msg)
+        return user_ref

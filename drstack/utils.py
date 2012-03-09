@@ -20,6 +20,8 @@
 Utility functions for DrParse
 """
 
+import copy
+
 import prettytable
 
 from novaclient import utils
@@ -44,6 +46,25 @@ def bool_from_string(subject):
         if subject.strip().lower() in ('true', 'on', '1'):
             return True
     return False
+
+
+# lifted from keystoneclient/base.py
+def getid(obj):
+    """
+    Abstracts the common pattern of allowing both an object or an object's ID
+    (UUID) as a parameter when dealing with relationships.
+    """
+
+    # Try to return the object's UUID first, if we have a UUID.
+    try:
+        if obj.uuid:
+            return obj.uuid
+    except AttributeError:
+        pass
+    try:
+        return obj.id
+    except AttributeError:
+        return obj
 
 
 def show_object(manager, id, fields=None):
@@ -96,3 +117,16 @@ def print_list(objs, fields, formatters={}):
     """Print list of objects"""
     # Passthrough to novaclient
     utils.print_list(objs, fields, formatters=formatters)
+
+
+def expand_meta(objs, field):
+    """Expand metadata fields in an object"""
+    ret = []
+    for oldobj in objs:
+        newobj = copy.deepcopy(oldobj)
+        ex = getattr(newobj, field, {})
+        for f in ex.keys():
+            setattr(newobj, f, ex[f])
+        delattr(newobj, field)
+        ret.append(newobj)
+    return ret

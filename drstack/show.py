@@ -47,6 +47,21 @@ class ShowCommand(base.Command):
                         print "%s.%s=%s" % (service['type'], k,
                                 endpoint.get(k, ''))
 
+    def on_ec2creds(self, args):
+        if len(args) < 3:
+            print "Required user and access key"
+            return
+        try:
+            user_ref = self.top.kc.users.get_by_name_or_id(args[1])
+            user_id = utils.getid(user_ref)
+        except kc_exceptions.NotFound:
+            print "user %s not found" % args[1]
+            return
+        # FIXME(dtroyer): look into more
+        cred = self.top.kc.ec2.get(user_id, args[2])
+        if cred:
+            utils.print_dict(cred._info)
+
     def on_flavor(self, args):
         self.top._get_nova()
         if len(args) < 2:
@@ -137,8 +152,12 @@ class ShowCommand(base.Command):
             print "no user specified"
             return
         try:
-            utils.show_object(self.top.kc.users, args[1],
-                    ['id', 'name', 'enabled'])
+            utils.print_obj_fields(
+                    self.top.kc.users.get_by_name_or_id(args[1]),
+                    ['id', 'name', 'email', 'enabled'])
         except kc_exceptions.NotFound:
+            print "user %s not found" % args[1]
+        except Exception, e:
+            print "other exception: %s" % e
             # Most likely this is not authorized
             raise exceptions.NotAuthorized(None, 'show user')
