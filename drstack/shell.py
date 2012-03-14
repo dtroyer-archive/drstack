@@ -407,25 +407,26 @@ def main(argv):
     readline.parse_and_bind('bind ^I rl_complete')
 
     parser = argparse.ArgumentParser(description="DrStack")
-    parser.add_argument('--auth_token', '--token', dest='auth_token',
+    parser.add_argument('--os-auth-token', dest='os_auth_token',
                         default=os.environ.get('OS_AUTH_TOKEN', ''),
                         help='OpenStack authentication token')
-    parser.add_argument('--auth_url', dest='auth_url',
+    parser.add_argument('--os-auth-url', dest='os_auth_url',
                         default=os.environ.get('OS_AUTH_URL', ''),
                         help='OpenStack authentication URL')
-    parser.add_argument('--password', dest='password',
+    parser.add_argument('--os-password', dest='os_password',
                         default=os.environ.get('OS_PASSWORD', ''),
                         help='OpenStack password')
-    parser.add_argument('--tenant', '--tenant_name', dest='tenant_name',
+    parser.add_argument('--os-tenant', '--os-tenant-name',
+                        dest='os_tenant_name',
                         default=os.environ.get('OS_TENANT_NAME', ''),
                         help='OpenStack tenant name')
-    parser.add_argument('--username', dest='username',
+    parser.add_argument('--os-username', dest='os_username',
                         default=os.environ.get('OS_USERNAME', ''),
                         help='OpenStack user')
-    parser.add_argument('--default_flavor', dest='default_flavor',
+    parser.add_argument('--default-flavor', dest='default_flavor',
                         default=os.environ.get('DEFAULT_FLAVOR', ''),
                         help='Default flavor to create instance')
-    parser.add_argument('--default_image', dest='default_image',
+    parser.add_argument('--default-image', dest='default_image',
                         default=os.environ.get('DEFAULT_IMAGE', ''),
                         help='Default image to create instance')
     parser.add_argument('--debug', dest='debug', action='store_const',
@@ -440,11 +441,11 @@ def main(argv):
     setdebug(args.debug)
 
     dr = DrStack()
-    dr.set_auth(auth_token=args.auth_token,
-                auth_url=args.auth_url,
-                password=args.password,
-                tenant_name=args.tenant_name,
-                username=args.username)
+    dr.set_auth(auth_token=args.os_auth_token,
+                auth_url=args.os_auth_url,
+                password=args.os_password,
+                tenant_name=args.os_tenant_name,
+                username=args.os_username)
 
     # Pass in more args directly ... yuck ...
     if args.default_flavor:

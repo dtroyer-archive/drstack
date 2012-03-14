@@ -75,8 +75,10 @@ class ShellTest(utils.TestCase):
                 with mock.patch('drstack.shell.DrStack.set_auth', auth_mock):
                     shell('list user')
                     assert auth_mock.call_args == ((), default_args)
-                    shell('--auth_url http://0.0.0.0:5000/ --tenant_name fred '
-                          '--username barney --password xyzpdq '
+                    shell('--os-auth-url http://0.0.0.0:5000/ '
+                          '--os-tenant-name fred '
+                          '--os-username barney '
+                          '--os-password xyzpdq '
                           'list user')
                     assert auth_mock.call_args == ((), {
                         'auth_url': 'http://0.0.0.0:5000/',

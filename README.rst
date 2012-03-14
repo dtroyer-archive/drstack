@@ -7,7 +7,9 @@ Identity, Compute and Image APIs.  It is a thin wrapper to the
 stock python-keystoneclient, python-novaclient and glance libraries
 that implement the actual API clients.
 
-DrStack's primary goal is to provide a unified shell command structure
+This is a proof-of-concept that attempts to prototype the design goals
+shown in http://etherpad.openstack.org/cli-folsum.  DrStack's primary
+goal is to provide a unified shell command structure
 and (as much as possible) a common language to describe operations
 in OpenStack.
 
@@ -26,21 +28,21 @@ the 'password flow' variation.
    export OS_USERNAME=user
    export OS_PASSWORD=password    # yes, it isn't secure, we'll address it in the future
 
-Alternatively the command-line options look very similar, but without the OS::
+The corresponding command-line options look very similar::
 
-   --auth_url
-   --tenant_name
-   --username
-   --password
+   --os-auth-url <url>
+   --os-tenant-name <tenant-name>
+   --os-username <user-name>
+   --os-password <password>
 
 Additional command-line options and their associated environment variables
 are listed here::
 
    --debug             # turns on some debugging of the API conversation
                          (via httplib2)
-   --default_flavor    # the _name_ of the flavor used to create an instance
+   --default-flavor    # the _name_ of the flavor used to create an instance
                          if flavor= is not specified in *create instance*
-   --default_image     # the _name_ of the image used to create an instance
+   --default-image     # the _name_ of the image used to create an instance
                          if image= is not specified in *create instance*
 
 Usage
