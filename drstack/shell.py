@@ -32,9 +32,9 @@ from cmd2 import Cmd, make_option, options
 import httplib2
 
 from glance import client as glance_client
+from keystoneclient import exceptions
 #from keystoneclient.v2_0 import client as keystone_client
 from novaclient.v1_1 import client as nova_client
-from novaclient import exceptions
 from novaclient import utils
 
 import drstack.compat.keystone as keystone_client
@@ -407,26 +407,32 @@ def main(argv):
     readline.parse_and_bind('bind ^I rl_complete')
 
     parser = argparse.ArgumentParser(description="DrStack")
-    parser.add_argument('--os-auth-token', dest='os_auth_token',
-                        default=os.environ.get('OS_AUTH_TOKEN', ''),
-                        help='OpenStack authentication token')
     parser.add_argument('--os-auth-url', dest='os_auth_url',
+                        metavar='<auth-url>',
                         default=os.environ.get('OS_AUTH_URL', ''),
                         help='OpenStack authentication URL')
-    parser.add_argument('--os-password', dest='os_password',
-                        default=os.environ.get('OS_PASSWORD', ''),
-                        help='OpenStack password')
-    parser.add_argument('--os-tenant', '--os-tenant-name',
-                        dest='os_tenant_name',
+    parser.add_argument('--os-tenant-name', dest='os_tenant_name',
+                        metavar='<tenant-name>',
                         default=os.environ.get('OS_TENANT_NAME', ''),
                         help='OpenStack tenant name')
     parser.add_argument('--os-username', dest='os_username',
+                        metavar='<user-name>',
                         default=os.environ.get('OS_USERNAME', ''),
                         help='OpenStack user')
+    parser.add_argument('--os-password', dest='os_password',
+                        metavar='<password>',
+                        default=os.environ.get('OS_PASSWORD', ''),
+                        help='OpenStack password')
+    parser.add_argument('--os-auth-token', dest='os_auth_token',
+                        metavar='<auth-token>',
+                        default=os.environ.get('OS_AUTH_TOKEN', ''),
+                        help='OpenStack authentication token')
     parser.add_argument('--default-flavor', dest='default_flavor',
+                        metavar='<flavor>',
                         default=os.environ.get('DEFAULT_FLAVOR', ''),
                         help='Default flavor to create instance')
     parser.add_argument('--default-image', dest='default_image',
+                        metavar='<image>',
                         default=os.environ.get('DEFAULT_IMAGE', ''),
                         help='Default image to create instance')
     parser.add_argument('--debug', dest='debug', action='store_const',
@@ -436,6 +442,18 @@ def main(argv):
     # HACK(troyer): remove the above options from the command line
     # so cmd2/optparse don't try to handle them again
     sys.argv = argv
+
+    # Handle top-level --help/-h before attempting to parse
+    # a command off the command line
+    if getattr(args, 'help', None):
+        self.do_help(options)
+        return 0
+
+    # Check for authentication info
+    if (not args.os_auth_url and not args.os_tenant_name and
+        not args.os_username and not args.os_password):
+            raise exceptions.AuthorizationFailure("No authentication "
+                "supplied")
 
     # Configure included modules for appropriately explicit verbosity
     setdebug(args.debug)
