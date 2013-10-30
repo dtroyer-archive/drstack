@@ -64,6 +64,32 @@ def can_haznt_slash(str):
     return str
 
 
+class PrimaryCommand(object):
+    """Container for command data structures"""
+
+    _instance = None
+    _subjects = {}
+    _commands = []
+
+    def __init__(self, cmd):
+        self.find_subjects(cmd)
+
+    def find_subjects(self, verb_module):
+        """Get all subject methods in the verb module"""
+        _subjects = {}
+        _commands = []
+        print "find_subjects(%s)" % verb_module
+        for verb in (v for v in dir(verb_module) if v.endswith('Command')):
+            _instance = getattr(verb_module, verb)(top=self)
+            for subject in (s for s in dir(_instance)
+                    if s.startswith('on_')):
+                command = subject[3:].replace('_', '-')
+                callback = getattr(_instance, subject)
+                arguments = getattr(callback, 'arguments', [])
+                _subjects[command] = callback
+                _commands.append(command + ' ')
+
+
 class DrStack(Cmd, object):
     """Naive command loop for the Good Doctor(tm)"""
 
@@ -120,6 +146,8 @@ class DrStack(Cmd, object):
     show_commands = ()
     show_instance = None
     show_subjects = None
+
+    show_command = None
 
     def default(self, line):
         """Attempt to execute unknown commands in a shell"""
@@ -266,15 +294,12 @@ class DrStack(Cmd, object):
         self.remove_subjects[args[0]](args)
 
     def complete_show(self, text, line, bx, ex):
-        if not self.show_subjects:
-            (self.show_instance,
-             self.show_subjects,
-             self.show_commands) = \
-                    self.find_subjects(show_cmd)
+        if not self.show_command:
+            self.show_command = PrimaryCommand(show_cmd)
         if not text:
-            comp = self.show_commands[:]
+            comp = self.show_command._commands[:]
         else:
-            comp = [c for c in self.show_commands if c.startswith(text)]
+            comp = [c for c in self.show_command._commands if c.startswith(text)]
         return comp
 
     def do_show(self, line):
@@ -286,13 +311,10 @@ class DrStack(Cmd, object):
             Cmd.do_show(self, line)
         else:
             # Find all SHOW subjects
-            if not self.show_subjects:
-                (self.show_instance,
-                 self.show_subjects,
-                 self.show_commands) = \
-                        self.find_subjects(show_cmd)
-            args = line.split()
-            self.show_subjects[args[0]](args)
+            if not self.show_command:
+                self.show_command = PrimaryCommand(show_cmd)
+                args = line.split()
+            self.show_command._subjects[args[0]](args)
 
     def do_set(self, line):
         super(DrStack, self).do_set(line)
